@@ -182,14 +182,18 @@ class Native {
     }
 
     private static File extractToStaticLocation(URL url) throws IOException {
-
-        File jarFile = getJarFile(url);
-        if (jarFile == null) {
-            throw new RuntimeException("Failed to locate JAR file by URL " + url);
+        String location = System.getProperty(DLL_TARGET);
+        if (location == null) {
+            File jarFile = getJarFile(url);
+            if (jarFile != null) {
+            	location = jarFile.getParentFile().getAbsolutePath();
+            }
+            else {
+                location = System.getProperty("java.io.tmpdir");
+            }
         }
 
-        String preferred = System.getProperty(DLL_TARGET);
-        File destFile = new File(preferred != null ? new File(preferred) : jarFile.getParentFile(), DLL_NAME + '.' + md5(url) + ".dll");
+        File destFile = new File(new File(location), DLL_NAME + '.' + md5(url) + ".dll");
         if (!destFile.exists()) {
             copyStream(url.openStream(), new FileOutputStream(destFile));
         }
